@@ -1,0 +1,175 @@
+scenario 1:
+CREATE OR REPLACE PACKAGE CustomerManagement IS
+    PROCEDURE AddCustomer(
+        p_customer_id IN NUMBER,
+        p_name IN VARCHAR2,
+        p_date_of_birth IN DATE,
+        p_address IN VARCHAR2
+    );
+    
+    PROCEDURE UpdateCustomerDetails(
+        p_customer_id IN NUMBER,
+        p_name IN VARCHAR2,
+        p_date_of_birth IN DATE,
+        p_address IN VARCHAR2
+    );
+    
+    FUNCTION GetCustomerBalance(
+        p_customer_id IN NUMBER
+    ) RETURN NUMBER;
+END CustomerManagement;
+/
+
+CREATE OR REPLACE PACKAGE BODY CustomerManagement IS
+    PROCEDURE AddCustomer(
+        p_customer_id IN NUMBER,
+        p_name IN VARCHAR2,
+        p_date_of_birth IN DATE,
+        p_address IN VARCHAR2
+    ) IS
+    BEGIN
+        INSERT INTO customers (customer_id, name, date_of_birth, address)
+        VALUES (p_customer_id, p_name, p_date_of_birth, p_address);
+    END AddCustomer;
+    
+    PROCEDURE UpdateCustomerDetails(
+        p_customer_id IN NUMBER,
+        p_name IN VARCHAR2,
+        p_date_of_birth IN DATE,
+        p_address IN VARCHAR2
+    ) IS
+    BEGIN
+        UPDATE customers
+        SET name = p_name,
+            date_of_birth = p_date_of_birth,
+            address = p_address,
+            LastModified = SYSDATE
+        WHERE customer_id = p_customer_id;
+    END UpdateCustomerDetails;
+    
+    FUNCTION GetCustomerBalance(
+        p_customer_id IN NUMBER
+    ) RETURN NUMBER IS
+        v_balance NUMBER;
+    BEGIN
+        SELECT SUM(balance) INTO v_balance
+        FROM accounts
+        WHERE customer_id = p_customer_id;
+        
+        RETURN v_balance;
+    END GetCustomerBalance;
+END CustomerManagement;
+/
+scenario 2:
+CREATE OR REPLACE PACKAGE EmployeeManagement IS
+    PROCEDURE HireEmployee(
+        p_employee_id IN NUMBER,
+        p_name IN VARCHAR2,
+        p_department_id IN NUMBER,
+        p_salary IN NUMBER
+    );
+    
+    PROCEDURE UpdateEmployeeDetails(
+        p_employee_id IN NUMBER,
+        p_name IN VARCHAR2,
+        p_department_id IN NUMBER,
+        p_salary IN NUMBER
+    );
+    
+    FUNCTION CalculateAnnualSalary(
+        p_employee_id IN NUMBER
+    ) RETURN NUMBER;
+END EmployeeManagement;
+/
+
+CREATE OR REPLACE PACKAGE BODY EmployeeManagement IS
+    PROCEDURE HireEmployee(
+        p_employee_id IN NUMBER,
+        p_name IN VARCHAR2,
+        p_department_id IN NUMBER,
+        p_salary IN NUMBER
+    ) IS
+    BEGIN
+        INSERT INTO employees (employee_id, name, department_id, salary)
+        VALUES (p_employee_id, p_name, p_department_id, p_salary);
+    END HireEmployee;
+    
+    PROCEDURE UpdateEmployeeDetails(
+        p_employee_id IN NUMBER,
+        p_name IN VARCHAR2,
+        p_department_id IN NUMBER,
+        p_salary IN NUMBER
+    ) IS
+    BEGIN
+        UPDATE employees
+        SET name = p_name,
+            department_id = p_department_id,
+            salary = p_salary
+        WHERE employee_id = p_employee_id;
+    END UpdateEmployeeDetails;
+    
+    FUNCTION CalculateAnnualSalary(
+        p_employee_id IN NUMBER
+    ) RETURN NUMBER IS
+        v_annual_salary NUMBER;
+    BEGIN
+        SELECT salary * 12 INTO v_annual_salary
+        FROM employees
+        WHERE employee_id = p_employee_id;
+        
+        RETURN v_annual_salary;
+    END CalculateAnnualSalary;
+END EmployeeManagement;
+/
+scenario 3:
+CREATE OR REPLACE PACKAGE AccountOperations IS
+    PROCEDURE OpenAccount(
+        p_account_id IN NUMBER,
+        p_customer_id IN NUMBER,
+        p_account_type IN VARCHAR2,
+        p_balance IN NUMBER
+    );
+    
+    PROCEDURE CloseAccount(
+        p_account_id IN NUMBER
+    );
+    
+    FUNCTION GetTotalCustomerBalance(
+        p_customer_id IN NUMBER
+    ) RETURN NUMBER;
+END AccountOperations;
+/
+
+CREATE OR REPLACE PACKAGE BODY AccountOperations IS
+    PROCEDURE OpenAccount(
+        p_account_id IN NUMBER,
+        p_customer_id IN NUMBER,
+        p_account_type IN VARCHAR2,
+        p_balance IN NUMBER
+    ) IS
+    BEGIN
+        INSERT INTO accounts (account_id, customer_id, account_type, balance)
+        VALUES (p_account_id, p_customer_id, p_account_type, p_balance);
+    END OpenAccount;
+    
+    PROCEDURE CloseAccount(
+        p_account_id IN NUMBER
+    ) IS
+    BEGIN
+        DELETE FROM accounts
+        WHERE account_id = p_account_id;
+    END CloseAccount;
+    
+    FUNCTION GetTotalCustomerBalance(
+        p_customer_id IN NUMBER
+    ) RETURN NUMBER IS
+        v_total_balance NUMBER;
+    BEGIN
+        SELECT SUM(balance) INTO v_total_balance
+        FROM accounts
+        WHERE customer_id = p_customer_id;
+        
+        RETURN v_total_balance;
+    END GetTotalCustomerBalance;
+END AccountOperations;
+/

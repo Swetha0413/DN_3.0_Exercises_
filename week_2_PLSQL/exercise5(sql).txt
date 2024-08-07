@@ -1,0 +1,52 @@
+scenario 1:
+CREATE OR REPLACE TRIGGER UpdateCustomerLastModified
+BEFORE UPDATE ON customers
+FOR EACH ROW
+BEGIN
+    :NEW.LastModified := SYSDATE;
+END UpdateCustomerLastModified;
+/
+scenario 2:
+CREATE OR REPLACE TRIGGER LogTransaction
+AFTER INSERT ON transactions
+FOR EACH ROW
+BEGIN
+    INSERT INTO AuditLog (transaction_id, account_id, transaction_type, amount, transaction_date)
+    VALUES (:NEW.transaction_id, :NEW.account_id, :NEW.transaction_type, :NEW.amount, :NEW.transaction_date);
+END LogTransaction;
+/
+scenario 3:
+CREATE OR REPLACE TRIGGER CheckTransactionRules
+BEFORE INSERT ON transactions
+FOR EACH ROW
+DECLARE
+    v_balance NUMBER;
+BEGIN
+    -- Check if the transaction is a withdrawal
+    IF :NEW.transaction_type = 'Withdrawal' THEN
+        -- Get the current balance of the account
+        SELECT balance INTO v_balance
+        FROM accounts
+        WHERE account_id = :NEW.account_id
+        FOR UPDATE;
+        
+        -- Ensure the withdrawal does not exceed the balance
+        IF :NEW.amount > v_balance THEN
+            RAISE_APPLICATION_ERROR(-20001, 'Insufficient funds for withdrawal.');
+        END IF;
+        
+        -- Ensure the withdrawal amount is positive
+        IF :NEW.amount <= 0 THEN
+            RAISE_APPLICATION_ERROR(-20002, 'Withdrawal amount must be positive.');
+        END IF;
+    END IF;
+    
+    -- Check if the transaction is a deposit
+    IF :NEW.transaction_type = 'Deposit' THEN
+        -- Ensure the deposit amount is positive
+        IF :NEW.amount <= 0 THEN
+            RAISE_APPLICATION_ERROR(-20003, 'Deposit amount must be positive.');
+        END IF;
+    END IF;
+END CheckTransactionRules;
+/

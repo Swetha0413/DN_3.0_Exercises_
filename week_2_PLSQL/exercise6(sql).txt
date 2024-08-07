@@ -1,0 +1,76 @@
+scenario 1:
+DECLARE
+    CURSOR transactions_cursor IS
+        SELECT customer_id, transaction_date, transaction_type, amount
+        FROM transactions
+        WHERE TRUNC(transaction_date, 'MM') = TRUNC(SYSDATE, 'MM');
+        
+    v_customer_id transactions.customer_id%TYPE;
+    v_transaction_date transactions.transaction_date%TYPE;
+    v_transaction_type transactions.transaction_type%TYPE;
+    v_amount transactions.amount%TYPE;
+BEGIN
+    OPEN transactions_cursor;
+    LOOP
+        FETCH transactions_cursor INTO v_customer_id, v_transaction_date, v_transaction_type, v_amount;
+        EXIT WHEN transactions_cursor%NOTFOUND;
+        
+        DBMS_OUTPUT.PUT_LINE('Customer ID: ' || v_customer_id);
+        DBMS_OUTPUT.PUT_LINE('Transaction Date: ' || TO_CHAR(v_transaction_date, 'YYYY-MM-DD'));
+        DBMS_OUTPUT.PUT_LINE('Transaction Type: ' || v_transaction_type);
+        DBMS_OUTPUT.PUT_LINE('Amount: ' || v_amount);
+        DBMS_OUTPUT.PUT_LINE('-----------------------------');
+    END LOOP;
+    CLOSE transactions_cursor;
+END;
+/
+scenario 2:
+DECLARE
+    CURSOR accounts_cursor IS
+        SELECT account_id, balance
+        FROM accounts;
+        
+    v_account_id accounts.account_id%TYPE;
+    v_balance accounts.balance%TYPE;
+    v_annual_fee CONSTANT NUMBER := 50; -- Define the annual fee amount
+BEGIN
+    OPEN accounts_cursor;
+    LOOP
+        FETCH accounts_cursor INTO v_account_id, v_balance;
+        EXIT WHEN accounts_cursor%NOTFOUND;
+        
+        UPDATE accounts
+        SET balance = balance - v_annual_fee
+        WHERE account_id = v_account_id;
+    END LOOP;
+    CLOSE accounts_cursor;
+    COMMIT;
+END;
+/
+scenario 3:
+DECLARE
+    CURSOR loans_cursor IS
+        SELECT loan_id, interest_rate
+        FROM loans;
+        
+    v_loan_id loans.loan_id%TYPE;
+    v_interest_rate loans.interest_rate%TYPE;
+    v_new_interest_rate NUMBER;
+BEGIN
+    OPEN loans_cursor;
+    LOOP
+        FETCH loans_cursor INTO v_loan_id, v_interest_rate;
+        EXIT WHEN loans_cursor%NOTFOUND;
+        
+        -- Apply new policy to determine new interest rate
+        -- For this example, let's assume the new policy is to increase the interest rate by 0.5%
+        v_new_interest_rate := v_interest_rate + 0.5;
+        
+        UPDATE loans
+        SET interest_rate = v_new_interest_rate
+        WHERE loan_id = v_loan_id;
+    END LOOP;
+    CLOSE loans_cursor;
+    COMMIT;
+END;
+/
